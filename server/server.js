@@ -84,25 +84,64 @@ let sessionData = session({
 app.use(sessionData);
 
 
-
-
-
-
-
-// main socket.io stuff
-io.on('connection', socket => {
-
-    // When client joins, emit message
-    socket.emit("WelcomeClient", {
-        message: "Welcome to sky danger ranger! we're glad to have you here. It's gonna be a ride!"
-    })
-
-    // Client sends message
-    socket.on('clientMessageToServer', request => {
-        console.log(`Message from Client with id ${socket.id}: ${request.message}`);
+/////////////// SOCKET FUNCTIONS
+//Listeners
+const listenForDisconnected = (socket) => {
+    socket.on('disconnect', () => {
+        console.log(`Client with the following id has disconnected: ${socket.id}`);
     });
+};
 
-    // Client sends message to be stored in DB
+const listenForUpdatingCoordinates = (socket) => {
+    socket.on('updateMyCoordinates', request => {
+        const {roomID} = request;
+        const {xCoord} = request;
+        const {yCoord} = request;
+        socket.broadcast.to(roomID).emit('updateOpponentCoordinates', {
+            xCoord: xCoord,
+            yCoord: yCoord
+        })
+    });
+};
+
+const listenForLaser = (socket) => {
+    socket.on('laserShot', request => {
+        const {roomID} = request;
+        if (!!roomID){
+            console.log(request, 'the best')
+            socket.broadcast.to(roomID).emit('opponentLasered')
+        }
+    });
+};
+
+const listenForNewRoomJoining = (socket) => {
+    socket.on('joinRoom', request => {
+        const {roomID} = request;
+        console.log( "socketID:", socket.id, "joining roomID:", roomID,)
+        socket.join(roomID)
+
+
+        // socket.broadcast.to: send to all in room except person who sent it
+        socket.broadcast.to(roomID).emit("newRoomMemberJoined", {
+            message: "New member has joined!"
+        });
+    });
+};
+
+const listenForMessageToRoom = (socket) => {
+    socket.on('sendMessageToRoom', request => {
+        const {roomID} = request;
+        const {message} = request;
+        if(!!roomID){
+            socket.broadcast.to(roomID).emit('messageFromRoomMember', {
+                message: message
+            })
+        }
+    });
+}
+
+// this one will likely be deleted or changed
+const listenForMessageToDB = (socket) => {
     socket.on("clientMessageToDatabase", request => {
         if (!request.username || !request.message) {
             console.log("User didn't specify both username and message! Rip to the B.I.G.");
@@ -118,13 +157,40 @@ io.on('connection', socket => {
             console.log("New object created! Here it is: ", createdDBObject);
         });
     });
+};
+
+const emitWelcome = (socket) => {
+    socket.emit("WelcomeClient", {
+        message: "Welcome to sky danger ranger! we're glad to have you here. It's gonna be a ride!"
+    })
+};
+
+
+
+// main socket.io stuff
+io.on('connection', socket => {
+
+    // When client joins, emit message
+    emitWelcome(socket);
+
+    // New Client wants to join room
+    listenForNewRoomJoining(socket);
+
+    // Send message to room
+    listenForMessageToRoom(socket);
+
+    // Updating coordinates on other's end
+    listenForUpdatingCoordinates(socket);
+
+    // When a user shoots the laser
+    listenForLaser(socket);
+
+    // Client sends message to be stored in DB
+    listenForMessageToDB(socket);
 
     // Client disconnects
-    socket.on('disconnect', () => {
-        console.log(`Client with the following id has connected: ${socket.id}`);
-    });
+    listenForDisconnected(socket)
 });
-
 
 
 /*
