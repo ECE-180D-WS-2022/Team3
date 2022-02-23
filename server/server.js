@@ -108,7 +108,6 @@ const listenForLaser = (socket) => {
     socket.on('laserShot', request => {
         const {roomID} = request;
         if (!!roomID){
-            console.log(request, 'the best')
             socket.broadcast.to(roomID).emit('opponentLasered')
         }
     });
