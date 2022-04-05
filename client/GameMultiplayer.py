@@ -175,7 +175,8 @@ class GameMultiplayer:
             # update ranger coordinates
             self.player.ranger.update_coordinates(x, y)
             # update server coordinates
-            self.server.send_location_and_meta(x, y, self.player.ranger.z, self.controller.is_firing())
+            self.server.send_location_and_meta(
+                x, y, self.player.ranger.z, self.controller.is_firing())
 
             # show laser
             self.player.ranger.fire(

@@ -81,11 +81,11 @@ class ServerIface:
         def update_opponent_ranger_coordinates(data):
             # set coordinates of opponent rangers
             self.opponent_ranger_coordinates[data["socket_id"]] = (
-                    data['x'],
-                    data['y'],
-                    data['z'],
-                    data['is_firing']
-                )
+                data['x'],
+                data['y'],
+                data['z'],
+                data['is_firing']
+            )
 
         @self.socket.on("all_entities_to_client")
         def receiving_all_entities(data):
