@@ -791,6 +791,14 @@ class Game:
         if self.game_state == 'multiplayer' and not self.server.socket.connected:
             self.server.connect(self.room_id, self.is_host)
 
+        # placed here so any processes that need to finish in loop are fulfilled
+        # to avoid any bugs
+        if self.game_state == 'game_over' and self.server is not None:
+            # so if host reaches end of game, remove host from server side rooms
+            # why? if not, and we keep hosting rooms, without exiting program,
+            # we have a bunch of technically still connected sockets from host
+            self.server.disconnect()
+
     def run(self):
         # create clouds
         for _ in range(self.num_clouds):
