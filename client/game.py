@@ -792,7 +792,7 @@ class Game:
 
         # if in multiplayer, ensure connected
         # if game_state is 'multiplayer', self.server will be defined
-        if self.game_state == 'multiplayer' and not self.server.socket.connected:
+        if self.game_state == 'multiplayer' and not self.server.socket.connected and not self.server.game_over:
             self.server.connect(self.room_id, self.is_host)
 
     def run(self):

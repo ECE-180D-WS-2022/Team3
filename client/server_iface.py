@@ -14,6 +14,7 @@ class ServerIface:
         self.will_uri = 'https://skydr.herokuapp.com'
         self.used_uri = self.will_uri
         self.previously_connected = False
+        self.game_over = False
         try:
             self.socket.connect(self.used_uri, transports=['websocket'])
         except socketio.exceptions.ConnectionError as err:
@@ -106,21 +107,30 @@ class ServerIface:
             enemy_id = data['id']
             self.enemies_hurt[enemy_id] = new_health
 
+        @self.socket.on('game_over')
+        def game_over(data):
+            self.game_over = True
+
     def connect(self, room_id, is_host):
         try:
             if not self.socket.connected:
                 self.socket.connect(self.used_uri, transports=['websocket'])
         except socketio.exceptions.ConnectionError as err:
             print('[error]', err, ": can't connect to server! :(")
-        else:
+
+        if self.socket.connected:
             print('[debug] Connected to:', self.socket.connection_url)
             event_name = "join_new_room" if is_host else "join_existing_room"
             self.is_host = is_host
             self.room_id = room_id
-            self.epoch_time = int(time.time())
-            self.user_id = uuid.getnode()
-            # concatinating for local testing, so user id is still unique
-            self.time_user_id = self.epoch_time + self.user_id
+
+            # if previously_connected, these values already calculated
+            # keep same so everyone else recognizes you
+            if not self.previously_connected:
+                self.epoch_time = int(time.time())
+                self.user_id = uuid.getnode()
+                # concatinating for local testing, so user id is still unique
+                self.time_user_id = self.epoch_time + self.user_id
 
             self.socket.emit(event_name, {
                 'room_id': room_id,

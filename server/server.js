@@ -230,6 +230,9 @@ const listenForJoiningExistingRoom = (socket, roomTracker) => {
       socket.handshake.session.save();
 
       emitWelcome(socket);
+    } else {
+      // roomdoesnt exist
+      io.to(socket.id).emit("game_over");
     }
   });
 };
@@ -379,6 +382,8 @@ const listenForDisconnection = (socket, roomTracker) => {
       socket.handshake.session.timeUserID ===
       roomTracker[socket.handshake.session.roomID]?.host
     ) {
+      // let everyone know the game is over
+      io.to(socket.id).emit("game_over");
       // Delete room data & disconnect clients connected to this room
       delete roomTracker[socket.handshake.session.roomID];
       io.in(socket.handshake.session.roomID).disconnectSockets(true);
