@@ -533,9 +533,9 @@ while True:
         shooting_state = 0
         shooting_counter = 0
         isIdle = True
-    elif accYnorm > 0.07 and pointing_up == False and pointing_down == False and pointing_straight and shooting_counter > 20:  # code for shooting
+    elif accXnorm < -0.03 and pointing_up == False and pointing_down == False and pointing_straight and shooting_counter > 15:  # code for shooting
         shooting_state = 1
-    elif accYnorm < 0.07 and shooting_state == 1 and pointing_straight and downward_movement_state == upward_movement_state == 0:
+    elif accXnorm > -0.03 and shooting_state == 1 and pointing_straight and downward_movement_state == upward_movement_state == 0:
         print("shooting!!!!")
         IMU_dict["is_shooting"] = True
         publisher.publish(room, str.encode(json.dumps(IMU_dict)), qos=qos)
